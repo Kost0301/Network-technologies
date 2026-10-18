@@ -1,0 +1,43 @@
+{% extends "home.html" %}
+
+{% block todo_container %}
+<main class="container">
+    <!-- Форма для добавления новой задачи -->
+    <section class="mb-4">
+        <form method="post" action="/todo">
+            <div class="input-group">
+                <input type="text" name="item" class="form-control" placeholder="Введите текст новой задачи..." required>
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Добавить задачу</button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Если передана одна конкретная задача (просмотр по ID) -->
+    {% if todo %}
+        <article class="card p-3 shadow-sm">
+            <h4>Информация о задаче #{{ todo.id }}</h4>
+            <p class="lead"><strong>Текст:</strong> {{ todo.item }}</p>
+            <a href="/todo" class="btn btn-outline-secondary btn-sm" style="width: 150px;">← Назад к списку</a>
+        </article>
+    <!-- Иначе показываем список всех задач -->
+    {% else %}
+        <section>
+            <h3 class="mb-3 text-center">Список текущих дел</h3>
+            {% if todos %}
+                <ul class="list-group shadow-sm">
+                    {% for todo in todos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ loop.index }}. {{ todo.item }}</span>
+                            <a href="/todo/{{ loop.index }}" class="badge badge-info badge-pill p-2">Подробнее (ID: {{ loop.index }})</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="alert alert-light text-center">Задач пока нет. Добавьте первую!</div>
+            {% endif %}
+        </section>
+    {% endif %}
+</main>
+{% endblock %}

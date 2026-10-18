@@ -1,35 +1,48 @@
-from fastapi import APIRouter, Path
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, Path as PathParam, Request, status
+from fastapi.templating import Jinja2Templates
 from model import Todo
 
 todo_router = APIRouter()
 
-# Временная база данных в памяти
+# Надежный путь к папке templates (всегда найдет папку рядом с файлом todo.py)
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+# Список задач в памяти
 todo_list = []
 
-# 1. Добавление задачи (POST)
+
+# 1. Добавление задачи через форму (POST)
 @todo_router.post("/todo")
-async def add_todo(todo: Todo) -> dict:
+async def add_todo(request: Request, todo: Todo = Depends(Todo.as_form)):
+    todo.id = len(todo_list) + 1
     todo_list.append(todo)
-    # Персонализированный ответ (согласно Заданию 1)
-    return {
-        "message": "Задача успешно добавлена! (Студент: Марданов Рустем)"
-    }
+    return templates.TemplateResponse(
+        request=request, name="todo.html", context={"todos": todo_list}
+    )
 
-# 2. Получение всех задач (GET)
+
+# 2. Получение списка всех задач (GET)
 @todo_router.get("/todo")
-async def retrieve_todos() -> dict:
-    return {
-        "todos": todo_list
-    }
+async def retrieve_todos(request: Request):
+    return templates.TemplateResponse(
+        request=request, name="todo.html", context={"todos": todo_list}
+    )
 
-# 3. Получение одной задачи по ID (GET с параметром пути)
+
+# 3. Просмотр отдельной задачи по ID (GET)
 @todo_router.get("/todo/{todo_id}")
 async def get_single_todo(
-    todo_id: int = Path(..., title="ID задачи, которую нужно получить", ge=1)
-) -> dict:
+    request: Request,
+    todo_id: int = PathParam(..., title="ID задачи", ge=1),
+):
     for todo in todo_list:
         if todo.id == todo_id:
-            return {"todo": todo}
-    return {
-        "message": "Задача с таким ID не найдена. (Проверил: Марданов Рустем)"
-    }
+            return templates.TemplateResponse(
+                request=request, name="todo.html", context={"todo": todo}
+            )
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Задача с таким ID не найдена.",
+    )
