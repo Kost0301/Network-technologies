@@ -1,29 +1,27 @@
 from typing import List, Optional
+from beanie import Document, Link
 from models.events import Event
 from pydantic import BaseModel, EmailStr
 
 
-class User(BaseModel):
+class User(Document):
     email: EmailStr
     password: str
-    events: Optional[List[Event]] = []
+    events: Optional[List[Link[Event]]] = []
+
+    class Settings:
+        name = "users"  # Имя коллекции в MongoDB
 
     class Config:
         json_schema_extra = {
             "example": {
                 "email": "student@uust.ru",
-                "password": "StrongPassword123!",
+                "password": "strongpassword123",
                 "events": [],
             }
         }
 
 
-# Модель для регистрации нового пользователя
-class NewUser(User):
-    pass
-
-
-# Модель для входа пользователя
 class UserSignIn(BaseModel):
     email: EmailStr
     password: str
@@ -32,6 +30,6 @@ class UserSignIn(BaseModel):
         json_schema_extra = {
             "example": {
                 "email": "student@uust.ru",
-                "password": "StrongPassword123!",
+                "password": "strongpassword123",
             }
         }

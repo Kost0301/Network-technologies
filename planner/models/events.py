@@ -1,31 +1,33 @@
 from typing import List, Optional
-from sqlmodel import Column, Field, JSON, SQLModel
+from beanie import Document
+from pydantic import BaseModel
 
 
-# 1. Таблица событий для базы данных (table=True)
-class Event(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+# Модель документа для MongoDB (наследуется от Document)
+class Event(Document):
     title: str
     image: str
     description: str
-    tags: List[str] = Field(default=[], sa_column=Column(JSON))
+    tags: List[str]
     location: str
 
+    class Settings:
+        name = "events"  # Имя коллекции в MongoDB
+
     class Config:
-        arbitrary_types_allowed = True
         json_schema_extra = {
             "example": {
-                "title": "Презентация БД SQLModel (Марданов Рустем)",
-                "image": "https://linktomyimage.com/banner.png",
-                "description": "Событие сохранено в базе данных SQLite",
-                "tags": ["python", "fastapi", "sqlmodel", "sqlite"],
+                "title": "FastAPI NoSQL Презентация (Марданов Рустем)",
+                "image": "https://linktomyimage.com/image.png",
+                "description": "Событие сохранено в документоориентированной базе MongoDB",
+                "tags": ["fastapi", "mongodb", "beanie"],
                 "location": "УУНиТ, ауд. 301",
             }
         }
 
 
-# 2. Модель для частичного обновления события (PUT)
-class EventUpdate(SQLModel):
+# Модель для обновления
+class EventUpdate(BaseModel):
     title: Optional[str] = None
     image: Optional[str] = None
     description: Optional[str] = None
@@ -35,7 +37,7 @@ class EventUpdate(SQLModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "title": "Обновленное название события (Марданов Рустем)",
-                "location": "Новая аудитория 305",
+                "title": "Обновленное событие (Марданов Рустем)",
+                "location": "Конференц-зал",
             }
         }
